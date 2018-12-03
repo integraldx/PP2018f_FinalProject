@@ -1,9 +1,12 @@
 #include <stdio.h>
+#include <stdbool.h>
 #include <ncurses.h>
 
 char cards[4][4] = {0};
 
 typedef enum Scene { MAINMENU, GAMEBOARD } Scene; 
+
+bool gameEndFlag = false;
 
 Scene scene = MAINMENU;
 
@@ -35,6 +38,8 @@ void card_alphabet(int row, int column, char ch) {
 
 void switchScene() {
 	clear();
+	xFocus = 0;
+	yFocus = 0;
 	switch(scene) {
 		case MAINMENU:
 			scene = GAMEBOARD;
@@ -88,6 +93,9 @@ void display_cards() {
 	int j = 0;
 	for (i = 0; i < 4; i++) {
 		for (j = 0; j < 4; j++) {
+			if (i == yFocus && j == xFocus) {
+				attron(COLOR_PAIR(2));
+			}
 			mvaddch(3 * i + 1, 5 * j + 1, ACS_ULCORNER);
 			mvaddch(3 * i + 1, 5 * j + 2, ACS_HLINE);
 			mvaddch(3 * i + 1, 5 * j + 3, ACS_HLINE);
@@ -103,6 +111,7 @@ void display_cards() {
 			mvaddch(3 * i + 3, 5 * j + 3, ACS_HLINE);
 			mvaddch(3 * i + 3, 5 * j + 4, ACS_HLINE);
 			mvaddch(3 * i + 3, 5 * j + 5, ACS_LRCORNER);
+			attroff(COLOR_PAIR(2));
 		}
 	}
 
@@ -149,7 +158,21 @@ void moveFocus(int input) {
 	}
 }
 
+void handleSelection() {
+	switch(scene) {
+		case MAINMENU:
+			if(yFocus == 0) {
+				switchScene();
+			}
+			else if (yFocus == 1) {
+				gameEndFlag = true;
+			}
+			break;
+		case GAMEBOARD:
+			break;
+	}
 
+}
 
 
 int main() {
@@ -163,21 +186,31 @@ int main() {
 	}
 
 	display();
-	while((input = getch()) != 'q') {
+	while(true) {
+		input = getch();
 		switch(input) {
-			case 's':
-				switchScene();
-				break;
 			case KEY_UP:
 			case KEY_DOWN:
 			case KEY_LEFT:
 			case KEY_RIGHT:
 				moveFocus(input);
 				break;
+			case ' ':
+				handleSelection();
+				break;
+			case 'q':
+				if (scene == GAMEBOARD) {
+					switchScene();
+				}
+				break;
 		}
 
 
 		display();
+		if(gameEndFlag) {
+			break;
+		}
+
 	}
 
 
