@@ -3,6 +3,75 @@
 
 char cards[4][4] = {0};
 
+typedef enum Scene { MAINMENU, GAMEBOARD } Scene; 
+
+Scene scene = MAINMENU;
+
+int xFocus = 0;
+int yFocus = 0;
+
+void init() {
+	int i = 0;
+	int j = 0;
+	initscr();
+	raw();
+	keypad(stdscr, TRUE);
+	curs_set(0);
+	noecho();
+	start_color();
+	clear();
+
+	refresh();
+	display();
+}
+
+void card_alphabet(int row, int column, char ch) {
+	
+	cards[row][column] = ch;
+
+}
+
+void switchScene() {
+	clear();
+	switch(scene) {
+		case MAINMENU:
+			scene = GAMEBOARD;
+			break;
+		case GAMEBOARD:
+			scene = MAINMENU;
+			break;
+	}
+}
+
+void end() {
+	endwin();
+}
+
+void display() {
+	switch(scene) {
+		case MAINMENU:
+			display_menu();
+			break;
+		case GAMEBOARD:
+			display_cards();	
+			break;
+	}
+}
+
+void display_menu() {
+	int i;
+	char* game = "GAME START";
+	char* quit = "QUIT";
+
+	for (i = 0; i < 10; i++) {
+		mvaddch(6, 6 + i, game[i]);
+	}
+
+	for (i = 0; i < 4; i++) {
+		mvaddch(8, 6 + i, quit[i]);
+	}
+	
+}
 
 void display_cards() {
 	int i = 0;
@@ -30,64 +99,22 @@ void display_cards() {
 	refresh();
 }
 
-void init() {
-	int i = 0;
-	int j = 0;
-	initscr();
-	raw();
-	keypad(stdscr, TRUE);
-	curs_set(0);
-	noecho();
-	start_color();
-	clear();
-
-	mvaddch(0, 0, ACS_ULCORNER);
-	mvaddch(49, 0, ACS_LLCORNER);
-	mvaddch(0, 99, ACS_URCORNER);
-	mvaddch(49, 99, ACS_LRCORNER);
-	for (i = 1; i < 99; i++) {
-		mvaddch(0, i, ACS_HLINE);
-		mvaddch(49, i, ACS_HLINE);
-	}
-	for (i = 1; i < 49; i++) {
-		mvaddch(i, 0, ACS_VLINE);
-		mvaddch(i, 99, ACS_VLINE);
-	}
-
-	for (i = 0; i < 4; i++) {
-		for (j = 0; j < 4; j++) {
-			cards[i][j] = 'A';
-		}
-	}
-
-
-	refresh();
-	display_cards();
-}
-
-void card_alphabet(int row, int column, char ch) {
-	
-	cards[row][column] = ch;
-
-}
-
-void end() {
-	endwin();
-}
-
 int main() {
+	int input;
 	init();
 
-	
 	for (int i = 0; i < 4; i++) {
 		for (int j = 0; j < 4; j++) {
 			card_alphabet(i, j, 4 * i + j + 'A');
 		}
 	}
 
-	display_cards();
-	while(getch() != 'q') {
-		display_cards();
+	display();
+	while((input = getch()) != 'q') {
+		if(input == 's') {
+			switchScene();
+		}
+		display();
 	}
 
 
