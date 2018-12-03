@@ -19,6 +19,8 @@ void init() {
 	curs_set(0);
 	noecho();
 	start_color();
+	init_pair(1, COLOR_BLACK, COLOR_WHITE);
+	init_pair(2, COLOR_BLACK, COLOR_CYAN);
 	clear();
 
 	refresh();
@@ -64,11 +66,19 @@ void display_menu() {
 	char* quit = "QUIT";
 
 	for (i = 0; i < 10; i++) {
+		if(yFocus == 0) {
+			attron(COLOR_PAIR(2));
+		}
 		mvaddch(6, 6 + i, game[i]);
+		attroff(COLOR_PAIR(2));
 	}
 
 	for (i = 0; i < 4; i++) {
+		if (yFocus == 1) {
+			attron(COLOR_PAIR(2));
+		}
 		mvaddch(8, 6 + i, quit[i]);
+		attroff(COLOR_PAIR(2));
 	}
 	
 }
@@ -99,6 +109,49 @@ void display_cards() {
 	refresh();
 }
 
+void moveFocus(int input) {
+	switch(input) {
+		case KEY_UP:
+			if (yFocus > 0) {
+				yFocus--;
+			}
+			break;
+		case KEY_DOWN:
+			if (yFocus < 100) {
+				yFocus++;
+			}
+			break;
+		case KEY_LEFT:
+			if (xFocus > 0) {
+				xFocus--;
+			}
+			break;
+		case KEY_RIGHT:
+			if (xFocus < 100) {
+				xFocus++;
+			}
+			break;
+	}
+
+	if (scene == MAINMENU) {
+		if (yFocus > 1) {
+			yFocus = 1;
+		}
+		xFocus = 0;
+	}
+	else if (scene == GAMEBOARD) {
+		if (yFocus > 3) {
+			yFocus = 3;
+		}
+		if (xFocus > 3) {
+			xFocus = 3;
+		}
+	}
+}
+
+
+
+
 int main() {
 	int input;
 	init();
@@ -111,9 +164,19 @@ int main() {
 
 	display();
 	while((input = getch()) != 'q') {
-		if(input == 's') {
-			switchScene();
+		switch(input) {
+			case 's':
+				switchScene();
+				break;
+			case KEY_UP:
+			case KEY_DOWN:
+			case KEY_LEFT:
+			case KEY_RIGHT:
+				moveFocus(input);
+				break;
 		}
+
+
 		display();
 	}
 
