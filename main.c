@@ -8,9 +8,13 @@ char cards[4][4] = {0};
 
 typedef enum Scene { MAINMENU, GAMEBOARD } Scene; 
 
+typedef struct Coordinates { int y; int x; } Coordinates;
+
 bool gameEndFlag = false;
 
 Scene scene = MAINMENU;
+
+Coordinates prevFocus;
 
 int xFocus = 0;
 int yFocus = 0;
@@ -43,7 +47,6 @@ int main() {
 
 	while(true) {
 		input = getch();
-		printf("\a");
 		switch(input) {
 			case KEY_UP:
 			case KEY_DOWN:
@@ -274,7 +277,6 @@ void initializeGameBoard() {
 				break;
 			}
 		}
-
 	}
 }
 
