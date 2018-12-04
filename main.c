@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <ncurses.h>
+#include <stdlib.h>
+#include <time.h>
 
 char cards[4][4] = {0};
 
@@ -12,6 +14,64 @@ Scene scene = MAINMENU;
 
 int xFocus = 0;
 int yFocus = 0;
+
+void init();
+
+void initializeGameBoard();
+
+void card_alphabet(int row, int column, char ch);
+
+void switchScene();
+
+void end();
+
+void display();
+
+void display_menu();
+
+void display_cards();
+
+void moveFocus(int input);
+
+void handleSelection();
+
+int main() {
+	int input;
+	init();
+
+	display();
+
+	while(true) {
+		input = getch();
+		printf("\a");
+		switch(input) {
+			case KEY_UP:
+			case KEY_DOWN:
+			case KEY_LEFT:
+			case KEY_RIGHT:
+				moveFocus(input);
+				break;
+			case ' ':
+				handleSelection();
+				break;
+			case 'q':
+				if (scene == GAMEBOARD) {
+					switchScene();
+				}
+				break;
+		}
+
+
+		display();
+		if(gameEndFlag) {
+			break;
+		}
+
+	}
+
+	end();
+	return 0;
+}
 
 void init() {
 	int i = 0;
@@ -30,29 +90,18 @@ void init() {
 	display();
 }
 
+
 void card_alphabet(int row, int column, char ch) {
 	
 	cards[row][column] = ch;
 
 }
 
-void switchScene() {
-	clear();
-	xFocus = 0;
-	yFocus = 0;
-	switch(scene) {
-		case MAINMENU:
-			scene = GAMEBOARD;
-			break;
-		case GAMEBOARD:
-			scene = MAINMENU;
-			break;
-	}
-}
 
 void end() {
 	endwin();
 }
+
 
 void display() {
 	switch(scene) {
@@ -64,6 +113,7 @@ void display() {
 			break;
 	}
 }
+
 
 void display_menu() {
 	int i;
@@ -87,6 +137,7 @@ void display_menu() {
 	}
 	
 }
+
 
 void display_cards() {
 	int i = 0;
@@ -117,6 +168,7 @@ void display_cards() {
 
 	refresh();
 }
+
 
 void moveFocus(int input) {
 	switch(input) {
@@ -158,6 +210,7 @@ void moveFocus(int input) {
 	}
 }
 
+
 void handleSelection() {
 	switch(scene) {
 		case MAINMENU:
@@ -171,49 +224,60 @@ void handleSelection() {
 		case GAMEBOARD:
 			break;
 	}
-
 }
 
-
-int main() {
-	int input;
-	init();
-
-	for (int i = 0; i < 4; i++) {
-		for (int j = 0; j < 4; j++) {
-			card_alphabet(i, j, 4 * i + j + 'A');
-		}
-	}
-
-	display();
-	while(true) {
-		input = getch();
-		switch(input) {
-			case KEY_UP:
-			case KEY_DOWN:
-			case KEY_LEFT:
-			case KEY_RIGHT:
-				moveFocus(input);
-				break;
-			case ' ':
-				handleSelection();
-				break;
-			case 'q':
-				if (scene == GAMEBOARD) {
-					switchScene();
-				}
-				break;
-		}
-
-
-		display();
-		if(gameEndFlag) {
+void switchScene() {
+	clear();
+	xFocus = 0;
+	yFocus = 0;
+	switch(scene) {
+		case MAINMENU:
+			initializeGameBoard();
+			scene = GAMEBOARD;
 			break;
+		case GAMEBOARD:
+			for (int i = 0; i < 4; i++) {
+				for (int j = 0; j < 4; j++) {
+					cards[i][j] = 0;
+				}
+			}
+			scene = MAINMENU;
+			break;
+	}
+	display();
+}
+
+void initializeGameBoard() {
+	int i = 0;
+	int x = 0;
+	int y = 0;
+	char alphabets[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'};
+	srand(time(NULL));
+	
+	for(i = 0; i < 8; i++) {
+		while (true) {
+			x = rand() % 4;
+			y = rand() % 4;
+			
+			if(cards[y][x] == 0) {
+				cards[y][x] = alphabets[i];
+				break;
+			}
+
+		}
+		while (true) {
+			x = rand() % 4;
+			y = rand() % 4;
+			
+			if(cards[y][x] == 0) {
+				cards[y][x] = alphabets[i];
+				break;
+			}
 		}
 
 	}
-
-
-	end();
-	return 0;
 }
+
+
+	
+
