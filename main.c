@@ -15,6 +15,10 @@ Scene scene = MAINMENU;
 int xFocus = 0;
 int yFocus = 0;
 
+bool cardSelectionFlag = false;
+int selectionXFocus = 0;
+int selectionYFocus = 0;
+
 void init();
 
 void initializeGameBoard();
@@ -34,6 +38,8 @@ void display_cards();
 void moveFocus(int input);
 
 void handleSelection();
+
+void examineTwoCards();
 
 int main() {
 	int input;
@@ -84,6 +90,7 @@ void init() {
 	start_color();
 	init_pair(1, COLOR_BLACK, COLOR_WHITE);
 	init_pair(2, COLOR_BLACK, COLOR_CYAN);
+	init_pair(3, COLOR_BLACK, COLOR_YELLOW);
 	clear();
 
 	refresh();
@@ -147,22 +154,47 @@ void display_cards() {
 			if (i == yFocus && j == xFocus) {
 				attron(COLOR_PAIR(2));
 			}
-			mvaddch(3 * i + 1, 5 * j + 1, ACS_ULCORNER);
-			mvaddch(3 * i + 1, 5 * j + 2, ACS_HLINE);
-			mvaddch(3 * i + 1, 5 * j + 3, ACS_HLINE);
-			mvaddch(3 * i + 1, 5 * j + 4, ACS_HLINE);
-			mvaddch(3 * i + 1, 5 * j + 5, ACS_URCORNER);
-			mvaddch(3 * i + 2, 5 * j + 1, ACS_VLINE);
-			mvaddch(3 * i + 2, 5 * j + 2, ' ');
-			mvaddch(3 * i + 2, 5 * j + 3, cards[i][j]);
-			mvaddch(3 * i + 2, 5 * j + 4, ' ');
-			mvaddch(3 * i + 2, 5 * j + 5, ACS_VLINE);
-			mvaddch(3 * i + 3, 5 * j + 1, ACS_LLCORNER);
-			mvaddch(3 * i + 3, 5 * j + 2, ACS_HLINE);
-			mvaddch(3 * i + 3, 5 * j + 3, ACS_HLINE);
-			mvaddch(3 * i + 3, 5 * j + 4, ACS_HLINE);
-			mvaddch(3 * i + 3, 5 * j + 5, ACS_LRCORNER);
+			else if (cardSelectionFlag && i == selectionYFocus && j == selectionXFocus) {
+				attron(COLOR_PAIR(3));
+			}
+
+
+			if(cards[i][j] != 0) {
+				mvaddch(3 * i + 1, 5 * j + 1, ACS_ULCORNER);
+				mvaddch(3 * i + 1, 5 * j + 2, ACS_HLINE);
+				mvaddch(3 * i + 1, 5 * j + 3, ACS_HLINE);
+				mvaddch(3 * i + 1, 5 * j + 4, ACS_HLINE);
+				mvaddch(3 * i + 1, 5 * j + 5, ACS_URCORNER);
+				mvaddch(3 * i + 2, 5 * j + 1, ACS_VLINE);
+				mvaddch(3 * i + 2, 5 * j + 2, ' ');
+				mvaddch(3 * i + 2, 5 * j + 3, cards[i][j]);
+				mvaddch(3 * i + 2, 5 * j + 4, ' ');
+				mvaddch(3 * i + 2, 5 * j + 5, ACS_VLINE);
+				mvaddch(3 * i + 3, 5 * j + 1, ACS_LLCORNER);
+				mvaddch(3 * i + 3, 5 * j + 2, ACS_HLINE);
+				mvaddch(3 * i + 3, 5 * j + 3, ACS_HLINE);
+				mvaddch(3 * i + 3, 5 * j + 4, ACS_HLINE);
+				mvaddch(3 * i + 3, 5 * j + 5, ACS_LRCORNER);
+			}
+			else {
+				mvaddch(3 * i + 1, 5 * j + 1, ' ');
+				mvaddch(3 * i + 1, 5 * j + 2, ' ');
+				mvaddch(3 * i + 1, 5 * j + 3, ' ');
+				mvaddch(3 * i + 1, 5 * j + 4, ' ');
+				mvaddch(3 * i + 1, 5 * j + 5, ' ');
+				mvaddch(3 * i + 2, 5 * j + 1, ' ');
+				mvaddch(3 * i + 2, 5 * j + 2, ' ');
+				mvaddch(3 * i + 2, 5 * j + 3, ' ');
+				mvaddch(3 * i + 2, 5 * j + 4, ' ');
+				mvaddch(3 * i + 2, 5 * j + 5, ' ');
+				mvaddch(3 * i + 3, 5 * j + 1, ' ');
+				mvaddch(3 * i + 3, 5 * j + 2, ' ');
+				mvaddch(3 * i + 3, 5 * j + 3, ' ');
+				mvaddch(3 * i + 3, 5 * j + 4, ' ');
+				mvaddch(3 * i + 3, 5 * j + 5, ' ');
+			}
 			attroff(COLOR_PAIR(2));
+			attroff(COLOR_PAIR(3));
 		}
 	}
 
@@ -222,8 +254,25 @@ void handleSelection() {
 			}
 			break;
 		case GAMEBOARD:
+			if(cardSelectionFlag) {
+				examineTwoCards();
+				cardSelectionFlag = false;
+			}
+			else {
+				cardSelectionFlag = true;
+				selectionXFocus = xFocus;
+				selectionYFocus = yFocus;
+			}
 			break;
 	}
+}
+
+void examineTwoCards() {
+	if(cards[yFocus][xFocus] == cards[selectionYFocus][selectionXFocus]) {
+		cards[yFocus][xFocus] = 0;
+		cards[selectionYFocus][selectionXFocus] = 0;
+	}
+	clear();
 }
 
 void switchScene() {
