@@ -6,7 +6,7 @@
 
 char cards[4][4] = {0};
 
-typedef enum Scene { MAINMENU, GAMEBOARD } Scene; 
+typedef enum Scene { MAINMENU, GAMEBOARD, PAUSE, VICTORY } Scene; 
 
 bool gameEndFlag = false;
 
@@ -19,6 +19,7 @@ bool cardSelectionFlag = false;
 int selectionXFocus = 0;
 int selectionYFocus = 0;
 
+int leftPairs = 0;
 void init();
 
 void initializeGameBoard();
@@ -35,11 +36,17 @@ void display_menu();
 
 void display_cards();
 
+void display_pause();
+
+void display_victory();
+
 void moveFocus(int input);
 
 void handleSelection();
 
 void examineTwoCards();
+
+
 
 int main() {
 	int input;
@@ -62,6 +69,11 @@ int main() {
 				break;
 			case 'q':
 				if (scene == GAMEBOARD) {
+					switchScene();
+				}
+				break;
+			case '\n':
+				if (scene == VICTORY) {
 					switchScene();
 				}
 				break;
@@ -117,6 +129,11 @@ void display() {
 			break;
 		case GAMEBOARD:
 			display_cards();	
+			break;
+		case PAUSE:
+			break;
+		case VICTORY:
+			display_victory();
 			break;
 	}
 }
@@ -202,6 +219,19 @@ void display_cards() {
 }
 
 
+void display_victory() {
+	int i = 0;
+	char vict[] = "VICTORY!";
+	char ret[] = "Press enter to return to main menu.";
+
+	for (i = 0; i < 8; i++) {
+		mvaddch(6, 6 + i, vict[i]);
+	}
+
+	for (i = 0; i < (sizeof(ret) / sizeof(char)) - 1; i++) {
+		mvaddch(8, 6 + i, ret[i]);
+	}
+}
 void moveFocus(int input) {
 	switch(input) {
 		case KEY_UP:
@@ -271,20 +301,26 @@ void examineTwoCards() {
 	if(cards[yFocus][xFocus] == cards[selectionYFocus][selectionXFocus] && (yFocus != selectionYFocus || xFocus != selectionXFocus)) {
 		cards[yFocus][xFocus] = 0;
 		cards[selectionYFocus][selectionXFocus] = 0;
+		leftPairs--;
+	}
+
+	if (leftPairs == 0) {
+		scene = VICTORY;
 	}
 	clear();
 }
 
 void switchScene() {
 	clear();
-	xFocus = 0;
-	yFocus = 0;
 	switch(scene) {
 		case MAINMENU:
 			initializeGameBoard();
 			scene = GAMEBOARD;
 			break;
 		case GAMEBOARD:
+		case VICTORY:
+			xFocus = 0;
+			yFocus = 0;
 			for (int i = 0; i < 4; i++) {
 				for (int j = 0; j < 4; j++) {
 					cards[i][j] = 0;
@@ -326,6 +362,7 @@ void initializeGameBoard() {
 		}
 
 	}
+	leftPairs = 8;
 }
 
 
