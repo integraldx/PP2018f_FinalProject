@@ -268,7 +268,7 @@ void handleSelection() {
 }
 
 void examineTwoCards() {
-	if(cards[yFocus][xFocus] == cards[selectionYFocus][selectionXFocus]) {
+	if(cards[yFocus][xFocus] == cards[selectionYFocus][selectionXFocus] && (yFocus != selectionYFocus || xFocus != selectionXFocus)) {
 		cards[yFocus][xFocus] = 0;
 		cards[selectionYFocus][selectionXFocus] = 0;
 	}
@@ -291,6 +291,7 @@ void switchScene() {
 				}
 			}
 			scene = MAINMENU;
+			cardSelectionFlag = false;
 			break;
 	}
 	display();
