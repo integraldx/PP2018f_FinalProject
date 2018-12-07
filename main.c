@@ -20,6 +20,7 @@ int selectionXFocus = 0;
 int selectionYFocus = 0;
 
 int leftPairs = 0;
+
 void init();
 
 void initializeGameBoard();
@@ -46,6 +47,7 @@ void handleSelection();
 
 void examineTwoCards();
 
+void pauseGame();
 
 
 int main() {
@@ -62,19 +64,29 @@ int main() {
 			case KEY_DOWN:
 			case KEY_LEFT:
 			case KEY_RIGHT:
-				moveFocus(input);
+				if(scene == GAMEBOARD || scene == MAINMENU) {
+					moveFocus(input);
+				}
 				break;
 			case ' ':
-				handleSelection();
+				if(scene == GAMEBOARD || scene == MAINMENU) {
+					handleSelection();
+				}
 				break;
 			case 'q':
 				if (scene == GAMEBOARD) {
+					pauseGame();
+				}
+				else if (scene == PAUSE) {
 					switchScene();
 				}
 				break;
 			case '\n':
 				if (scene == VICTORY) {
 					switchScene();
+				}
+				else if (scene == PAUSE) {
+					scene = GAMEBOARD;
 				}
 				break;
 		}
@@ -131,6 +143,7 @@ void display() {
 			display_cards();	
 			break;
 		case PAUSE:
+			display_pause();
 			break;
 		case VICTORY:
 			display_victory();
@@ -232,6 +245,25 @@ void display_victory() {
 		mvaddch(8, 6 + i, ret[i]);
 	}
 }
+
+void display_pause() {
+	int i = 0;
+	char pause[] = "Game Paused";
+	char instruction1[] = "Resume : 'Enter'";
+	char instruction2[] = "Quit : 'q'";
+
+	for (i = 0; i < (sizeof(pause) / sizeof(char)) - 1; i++) {
+		mvaddch(6, i, pause[i]);
+	}
+
+	for (i = 0; i < (sizeof(instruction1) / sizeof(char)) - 1; i++) {
+		mvaddch(7, i, instruction1[i]);
+	}
+
+	for (i = 0; i < (sizeof(instruction2) / sizeof(char)) - 1; i++) {
+		mvaddch(8, i, instruction2[i]);
+	}
+}
 void moveFocus(int input) {
 	switch(input) {
 		case KEY_UP:
@@ -319,6 +351,7 @@ void switchScene() {
 			break;
 		case GAMEBOARD:
 		case VICTORY:
+		case PAUSE:
 			xFocus = 0;
 			yFocus = 0;
 			for (int i = 0; i < 4; i++) {
@@ -339,12 +372,12 @@ void initializeGameBoard() {
 	int y = 0;
 	char alphabets[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'};
 	srand(time(NULL));
-	
+
 	for(i = 0; i < 8; i++) {
 		while (true) {
 			x = rand() % 4;
 			y = rand() % 4;
-			
+
 			if(cards[y][x] == 0) {
 				cards[y][x] = alphabets[i];
 				break;
@@ -354,7 +387,7 @@ void initializeGameBoard() {
 		while (true) {
 			x = rand() % 4;
 			y = rand() % 4;
-			
+
 			if(cards[y][x] == 0) {
 				cards[y][x] = alphabets[i];
 				break;
@@ -365,6 +398,8 @@ void initializeGameBoard() {
 	leftPairs = 8;
 }
 
+void pauseGame() {
+	scene = PAUSE;
+}
 
-	
 
