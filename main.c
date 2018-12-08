@@ -4,6 +4,11 @@
 #include <stdlib.h>
 #include <time.h>
 
+#define SCREENWIDTH 50
+#define SCREENHEIGHT 15
+
+// Global variables for handling game status
+
 char cards[4][4] = {0};
 
 typedef enum Scene { MAINMENU, GAMEBOARD, PAUSE, VICTORY } Scene; 
@@ -21,6 +26,9 @@ int selectionYFocus = 0;
 
 int leftPairs = 0;
 
+
+// Utility functions
+
 void init();
 
 void initializeGameBoard();
@@ -32,6 +40,8 @@ void switchScene();
 void end();
 
 void display();
+
+void display_bound();
 
 void display_menu();
 
@@ -115,6 +125,7 @@ void init() {
 	init_pair(1, COLOR_BLACK, COLOR_WHITE);
 	init_pair(2, COLOR_BLACK, COLOR_CYAN);
 	init_pair(3, COLOR_BLACK, COLOR_YELLOW);
+	init_pair(4, COLOR_BLACK, COLOR_WHITE);
 	clear();
 
 	refresh();
@@ -135,6 +146,7 @@ void end() {
 
 
 void display() {
+	display_bound();
 	switch(scene) {
 		case MAINMENU:
 			display_menu();
@@ -150,6 +162,27 @@ void display() {
 			break;
 	}
 }
+
+void display_bound() {
+	int i;
+	mvaddch(0, 0, ACS_ULCORNER);
+	for (i = 1; i < SCREENWIDTH - 1; i++) {
+		mvaddch(0, i, ACS_HLINE);
+	}
+	mvaddch(0, SCREENWIDTH - 1, ACS_URCORNER);
+
+	for (i = 1; i < SCREENHEIGHT - 1; i++) {
+		mvaddch(i, 0, ACS_VLINE);
+		mvaddch(i, SCREENWIDTH - 1, ACS_VLINE);
+	}
+	mvaddch(SCREENHEIGHT - 1, 0, ACS_LLCORNER);
+
+	for (i = 1; i < SCREENWIDTH - 1; i++) {
+		mvaddch(SCREENHEIGHT - 1, i, ACS_HLINE);
+	}
+	mvaddch(SCREENHEIGHT - 1, SCREENWIDTH - 1, ACS_LRCORNER);
+}
+
 
 
 void display_menu() {
@@ -248,21 +281,23 @@ void display_victory() {
 
 void display_pause() {
 	int i = 0;
-	char pause[] = "Game Paused";
-	char instruction1[] = "Resume : 'Enter'";
-	char instruction2[] = "Quit : 'q'";
+	attron(COLOR_PAIR(4));
+	char pause[] =        "==Game Paused==";
+	char instruction1[] = "Resume  'Enter'";
+	char instruction2[] = "Quit      'q'  ";
 
 	for (i = 0; i < (sizeof(pause) / sizeof(char)) - 1; i++) {
-		mvaddch(6, i, pause[i]);
+		mvaddch(6, 3 + i, pause[i]);
 	}
 
 	for (i = 0; i < (sizeof(instruction1) / sizeof(char)) - 1; i++) {
-		mvaddch(7, i, instruction1[i]);
+		mvaddch(7, 3 + i, instruction1[i]);
 	}
 
 	for (i = 0; i < (sizeof(instruction2) / sizeof(char)) - 1; i++) {
-		mvaddch(8, i, instruction2[i]);
+		mvaddch(8, 3 + i, instruction2[i]);
 	}
+	attroff(COLOR_PAIR(4));
 }
 void moveFocus(int input) {
 	switch(input) {
