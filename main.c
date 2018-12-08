@@ -10,6 +10,7 @@
 // Global variables for handling game status
 
 char cards[4][4] = {0};
+bool isCleared[4][4] = {0};
 
 typedef enum Scene { MAINMENU, GAMEBOARD, PAUSE, VICTORY } Scene; 
 
@@ -24,7 +25,13 @@ bool cardSelectionFlag = false;
 int selectionXFocus = 0;
 int selectionYFocus = 0;
 
+bool displayingTrialFlag = false;
+
 int leftPairs = 0;
+
+int debugCommand[] = {KEY_UP, KEY_UP, KEY_DOWN, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_LEFT, KEY_RIGHT, 'b', 'a'};
+int debugAccomplishCount = 0;
+bool debugMode = false;
 
 
 // Utility functions
@@ -68,7 +75,18 @@ int main() {
 
 	while(true) {
 		input = getch();
-		printf("\a");
+		if(!debugMode) {
+
+			if(debugCommand[debugAccomplishCount] == input) {
+				debugAccomplishCount++;
+			}
+			else {
+				debugAccomplishCount = 0;
+			}
+			if(debugAccomplishCount >= (sizeof(debugCommand) / sizeof(int))) {
+				debugMode = true;
+			}
+		}
 		switch(input) {
 			case KEY_UP:
 			case KEY_DOWN:
@@ -165,6 +183,7 @@ void display() {
 
 void display_bound() {
 	int i;
+	const char* debug = "DEBUG MODE";
 	mvaddch(0, 0, ACS_ULCORNER);
 	for (i = 1; i < SCREENWIDTH - 1; i++) {
 		mvaddch(0, i, ACS_HLINE);
@@ -181,6 +200,13 @@ void display_bound() {
 		mvaddch(SCREENHEIGHT - 1, i, ACS_HLINE);
 	}
 	mvaddch(SCREENHEIGHT - 1, SCREENWIDTH - 1, ACS_LRCORNER);
+
+	if(debugMode) {
+		for(i = 0; i < 10; i++) {
+			mvaddch(0, 5 + i, debug[i]);
+		}
+	}
+
 }
 
 
@@ -222,7 +248,7 @@ void display_cards() {
 			}
 
 
-			if(cards[i][j] != 0) {
+			if(!isCleared[i][j]) {
 				mvaddch(3 * i + 1, 5 * j + 1, ACS_ULCORNER);
 				mvaddch(3 * i + 1, 5 * j + 2, ACS_HLINE);
 				mvaddch(3 * i + 1, 5 * j + 3, ACS_HLINE);
@@ -230,7 +256,12 @@ void display_cards() {
 				mvaddch(3 * i + 1, 5 * j + 5, ACS_URCORNER);
 				mvaddch(3 * i + 2, 5 * j + 1, ACS_VLINE);
 				mvaddch(3 * i + 2, 5 * j + 2, ' ');
-				mvaddch(3 * i + 2, 5 * j + 3, cards[i][j]);
+				if(debugMode || ((cardSelectionFlag || displayingTrialFlag)&& i == selectionYFocus && j == selectionXFocus) || (displayingTrialFlag && i == yFocus && j == xFocus)) {
+					mvaddch(3 * i + 2, 5 * j + 3, cards[i][j]);
+				}
+				else {
+					mvaddch(3 * i + 2, 5 * j + 3, ' ');
+				}
 				mvaddch(3 * i + 2, 5 * j + 4, ' ');
 				mvaddch(3 * i + 2, 5 * j + 5, ACS_VLINE);
 				mvaddch(3 * i + 3, 5 * j + 1, ACS_LLCORNER);
@@ -247,7 +278,12 @@ void display_cards() {
 				mvaddch(3 * i + 1, 5 * j + 5, ' ');
 				mvaddch(3 * i + 2, 5 * j + 1, ' ');
 				mvaddch(3 * i + 2, 5 * j + 2, ' ');
-				mvaddch(3 * i + 2, 5 * j + 3, ' ');
+				if(debugMode || ((cardSelectionFlag || displayingTrialFlag)&& i == selectionYFocus && j == selectionXFocus) || (displayingTrialFlag && i == yFocus && j == xFocus)) {
+					mvaddch(3 * i + 2, 5 * j + 3, cards[i][j]);
+				}
+				else {
+					mvaddch(3 * i + 2, 5 * j + 3, ' ');
+				}
 				mvaddch(3 * i + 2, 5 * j + 4, ' ');
 				mvaddch(3 * i + 2, 5 * j + 5, ' ');
 				mvaddch(3 * i + 3, 5 * j + 1, ' ');
@@ -300,6 +336,7 @@ void display_pause() {
 	attroff(COLOR_PAIR(4));
 }
 void moveFocus(int input) {
+	displayingTrialFlag = false;
 	switch(input) {
 		case KEY_UP:
 			if (yFocus > 0) {
@@ -351,14 +388,16 @@ void handleSelection() {
 			}
 			break;
 		case GAMEBOARD:
-			if(cardSelectionFlag) {
-				examineTwoCards();
-				cardSelectionFlag = false;
-			}
-			else {
-				cardSelectionFlag = true;
-				selectionXFocus = xFocus;
-				selectionYFocus = yFocus;
+			if(!isCleared[yFocus][xFocus]){
+				if(cardSelectionFlag) {
+					examineTwoCards();
+					cardSelectionFlag = false;
+				}
+				else {
+					cardSelectionFlag = true;
+					selectionXFocus = xFocus;
+					selectionYFocus = yFocus;
+				}
 			}
 			break;
 	}
@@ -366,10 +405,13 @@ void handleSelection() {
 
 void examineTwoCards() {
 	if(cards[yFocus][xFocus] == cards[selectionYFocus][selectionXFocus] && (yFocus != selectionYFocus || xFocus != selectionXFocus)) {
-		cards[yFocus][xFocus] = 0;
-		cards[selectionYFocus][selectionXFocus] = 0;
+		isCleared[yFocus][xFocus] = 1;
+		isCleared[selectionYFocus][selectionXFocus] = 1;
 		leftPairs--;
 	}
+	displayingTrialFlag = true;
+
+		
 
 	if (leftPairs == 0) {
 		scene = VICTORY;
@@ -392,6 +434,7 @@ void switchScene() {
 			for (int i = 0; i < 4; i++) {
 				for (int j = 0; j < 4; j++) {
 					cards[i][j] = 0;
+					isCleared[i][j] = 0;
 				}
 			}
 			scene = MAINMENU;
