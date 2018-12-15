@@ -42,7 +42,7 @@ void initializeGameBoard();
 
 void card_alphabet(int row, int column, char ch);
 
-void switchScene();
+void switchScene(Scene sc);
 
 void end();
 
@@ -106,20 +106,22 @@ int main() {
 					pauseGame();
 				}
 				else if (scene == PAUSE) {
-					switchScene();
+					switchScene(MAINMENU);
 				}
 				break;
 			case '\n':
 				if (scene == VICTORY) {
-					switchScene();
+					switchScene(MAINMENU);
 				}
 				else if (scene == PAUSE) {
 					scene = GAMEBOARD;
 				}
 				break;
+			case 'r':
+				if (scene == PAUSE) {
+					switchScene(GAMEBOARD);
+				}
 		}
-
-
 		display();
 		if(gameEndFlag) {
 			break;
@@ -320,7 +322,8 @@ void display_pause() {
 	attron(COLOR_PAIR(4));
 	char pause[] =        "==Game Paused==";
 	char instruction1[] = "Resume  'Enter'";
-	char instruction2[] = "Quit      'q'  ";
+	char instruction2[] = "Restart   'r'  ";
+	char instruction3[] = "Quit      'q'  ";
 
 	for (i = 0; i < (sizeof(pause) / sizeof(char)) - 1; i++) {
 		mvaddch(6, 3 + i, pause[i]);
@@ -332,6 +335,10 @@ void display_pause() {
 
 	for (i = 0; i < (sizeof(instruction2) / sizeof(char)) - 1; i++) {
 		mvaddch(8, 3 + i, instruction2[i]);
+	}
+
+	for (i = 0; i < (sizeof(instruction3) / sizeof(char)) - 1; i++) {
+		mvaddch(9, 3 + i, instruction3[i]);
 	}
 	attroff(COLOR_PAIR(4));
 }
@@ -381,7 +388,7 @@ void handleSelection() {
 	switch(scene) {
 		case MAINMENU:
 			if(yFocus == 0) {
-				switchScene();
+				switchScene(GAMEBOARD);
 			}
 			else if (yFocus == 1) {
 				gameEndFlag = true;
@@ -419,16 +426,14 @@ void examineTwoCards() {
 	clear();
 }
 
-void switchScene() {
+void switchScene(Scene sc) {
 	clear();
-	switch(scene) {
-		case MAINMENU:
+	switch(sc) {
+		case GAMEBOARD:
 			initializeGameBoard();
 			scene = GAMEBOARD;
 			break;
-		case GAMEBOARD:
-		case VICTORY:
-		case PAUSE:
+		case MAINMENU:
 			xFocus = 0;
 			yFocus = 0;
 			for (int i = 0; i < 4; i++) {
@@ -441,8 +446,11 @@ void switchScene() {
 			cardSelectionFlag = false;
 			break;
 	}
-	display();
+
+	return;
 }
+
+
 
 void initializeGameBoard() {
 	int i = 0;
@@ -450,6 +458,17 @@ void initializeGameBoard() {
 	int y = 0;
 	char alphabets[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'};
 	srand(time(NULL));
+
+	xFocus = 0;
+	yFocus = 0;
+	for (int i = 0; i < 4; i++) {
+		for (int j = 0; j < 4; j++) {
+			cards[i][j] = 0;
+			isCleared[i][j] = 0;
+		}
+	}
+	cardSelectionFlag = false;
+
 
 	for(i = 0; i < 8; i++) {
 		while (true) {
