@@ -27,7 +27,7 @@ int selectionYFocus = 0;
 
 bool displayingTrialFlag = false;
 
-int leftPairs = 0;
+int leftPairs = -1;
 
 int debugCommand[] = {KEY_UP, KEY_UP, KEY_DOWN, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_LEFT, KEY_RIGHT, 'b', 'a'};
 int debugAccomplishCount = 0;
@@ -74,18 +74,19 @@ int main() {
 	display();
 
 	while(true) {
+		flushinp();
+		
 		input = getch();
-		if(!debugMode) {
 
-			if(debugCommand[debugAccomplishCount] == input) {
-				debugAccomplishCount++;
-			}
-			else {
-				debugAccomplishCount = 0;
-			}
-			if(debugAccomplishCount >= (sizeof(debugCommand) / sizeof(int))) {
-				debugMode = true;
-			}
+		if(debugCommand[debugAccomplishCount] == input) {
+			debugAccomplishCount++;
+		}
+		else {
+			debugAccomplishCount = 0;
+		}
+		if(debugAccomplishCount >= (sizeof(debugCommand) / sizeof(int))) {
+			debugMode = !debugMode;
+			debugAccomplishCount = 0;
 		}
 		switch(input) {
 			case KEY_UP:
@@ -123,6 +124,19 @@ int main() {
 				}
 		}
 		display();
+		if(displayingTrialFlag) {
+			struct timespec ts;
+			ts.tv_sec = 500/1000;
+			ts.tv_nsec = (500 % 1000) * 1000000;
+			nanosleep(&ts, NULL);
+			displayingTrialFlag = false;
+			display();
+		}
+		if (leftPairs == 0) {
+			scene = VICTORY;
+			display();
+		}
+
 		if(gameEndFlag) {
 			break;
 		}
@@ -304,6 +318,8 @@ void display_cards() {
 
 
 void display_victory() {
+	clear();
+	display_bound();
 	int i = 0;
 	char vict[] = "VICTORY!";
 	char ret[] = "Press enter to return to main menu.";
@@ -416,13 +432,13 @@ void examineTwoCards() {
 		isCleared[selectionYFocus][selectionXFocus] = 1;
 		leftPairs--;
 	}
-	displayingTrialFlag = true;
+
+	if(yFocus != selectionYFocus || xFocus != selectionXFocus) {
+		displayingTrialFlag = true;
+	}
 
 		
 
-	if (leftPairs == 0) {
-		scene = VICTORY;
-	}
 	clear();
 }
 
@@ -442,6 +458,7 @@ void switchScene(Scene sc) {
 					isCleared[i][j] = 0;
 				}
 			}
+			leftPairs = -1;
 			scene = MAINMENU;
 			cardSelectionFlag = false;
 			break;
